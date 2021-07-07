@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:yuka/app_colors.dart';
 import 'package:yuka/app_icons.dart';
 import 'package:yuka/network/api_product.dart';
@@ -26,19 +27,6 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-
-/*
- * product: Product(
-    barcode: '266616155156615',
-    name: 'Petits pois et carottes',
-    altName: 'Petits pois et carottes à l\étuvée avec garniture',
-    brands: ['Cassegrain'],
-    nutriScore: ProductNutriscore.A,
-    manufacturingCountries: ['France'],
-    ecoScore: ProductEcoScore.D,
-    novaScore: ProductNovaScore.Group1,
-    quantity: '200g (égoutté 130g)')
- */
 
 class HomePage extends StatelessWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -159,75 +147,120 @@ class _DetailsScreenState extends State<DetailsScreen> {
     super.initState();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return BlocProvider(
-        create: (_) => bloc,
-        child: Scaffold(
-          body:
-              BlocBuilder<ProductBloc, ProductState>(builder: (context, state) {
-            if (state is ProductLoadingState) {
-              return Center(
-                child: CircularProgressIndicator(),
-              );
-            }
+  Widget _details = ProductDetails();
+  Widget _informations = ProductInformation();
 
-            if (state is ProductAvailableState) {
-              print(state.product?.name);
-              productAvailableState = state;
-              return SizedBox.expand(
-                child: ProductHolder(
-                  product: state.product,
-                  child: Stack(
-                    children: <Widget>[
-                      Positioned(
-                        left: 0,
-                        right: 0,
-                        child: ProductImage(),
-                      ),
-                      Positioned(
-                        left: 0.0,
-                        right: 0.0,
-                        top: 250.0,
-                        bottom: 0.0,
-                        child: ProductDetails(),
-                      )
-                    ],
-                  ),
-                ),
-              );
-            }
-
-            return Center(
-              child: CircularProgressIndicator(),
-            );
-          }),
-          bottomNavigationBar: ProductDetailsBottomNavigationBar(),
-        ));
-  }
-}
-
-class ProductDetailsBottomNavigationBar extends StatefulWidget {
-  const ProductDetailsBottomNavigationBar({Key? key}) : super(key: key);
-
-  @override
-  _ProductDetailsBottomNavigationBarState createState() =>
-      _ProductDetailsBottomNavigationBarState();
-}
-
-class _ProductDetailsBottomNavigationBarState
-    extends State<ProductDetailsBottomNavigationBar> {
-  @override
-  Widget build(BuildContext context) {
-    return BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        items: getItems(),
-        currentIndex: currentTab.index,
-        onTap: (int index) {
-          this.onTapHandler(index);
-        },
-        unselectedItemColor: AppColors.gray2,
-        selectedItemColor: AppColors.primaryColor);
+  Widget getBody(APIProduct product) {
+    if (this.currentTab == ProductDetailsCurrentTab.SUMMARY) {
+      return SizedBox.expand(
+        child: ProductHolder(
+          product: product,
+          child: Stack(
+            children: <Widget>[
+              Positioned(
+                left: 0,
+                right: 0,
+                child: ProductImage(),
+              ),
+              Positioned(
+                left: 0.0,
+                right: 0.0,
+                top: 250.0,
+                bottom: 0.0,
+                child: _details,
+              )
+            ],
+          ),
+        ),
+      );
+    } else if (this.currentTab == ProductDetailsCurrentTab.INFO) {
+      return SizedBox.expand(
+        child: ProductHolder(
+          product: product,
+          child: Stack(
+            children: <Widget>[
+              Positioned(
+                left: 0,
+                right: 0,
+                child: ProductImage(),
+              ),
+              Positioned(
+                left: 0.0,
+                right: 0.0,
+                top: 250.0,
+                bottom: 0.0,
+                child: _informations,
+              )
+            ],
+          ),
+        ),
+      );
+    } else if (this.currentTab == ProductDetailsCurrentTab.NUTRITION) {
+      return SizedBox.expand(
+        child: ProductHolder(
+          product: product,
+          child: Stack(
+            children: <Widget>[
+              Positioned(
+                left: 0,
+                right: 0,
+                child: ProductImage(),
+              ),
+              Positioned(
+                left: 0.0,
+                right: 0.0,
+                top: 250.0,
+                bottom: 0.0,
+                child: _informations,
+              )
+            ],
+          ),
+        ),
+      );
+    } else if (this.currentTab == ProductDetailsCurrentTab.NUTRITIONAL_VALUES) {
+      return SizedBox.expand(
+        child: ProductHolder(
+          product: product,
+          child: Stack(
+            children: <Widget>[
+              Positioned(
+                left: 0,
+                right: 0,
+                child: ProductImage(),
+              ),
+              Positioned(
+                left: 0.0,
+                right: 0.0,
+                top: 250.0,
+                bottom: 0.0,
+                child: _details,
+              )
+            ],
+          ),
+        ),
+      );
+    }
+    return SizedBox.expand(
+      child: ProductHolder(
+        product: product,
+        child: Stack(
+          children: <Widget>[
+            Positioned(
+              left: 0,
+              right: 0,
+              child: ProductImage(),
+            ),
+            Positioned(
+              left: 0.0,
+              right: 0.0,
+              top: 250.0,
+              bottom: 0.0,
+              child: _details,
+            )
+          ],
+        ),
+      ),
+    );
   }
 
   ProductDetailsCurrentTab currentTab = ProductDetailsCurrentTab.SUMMARY;
@@ -276,6 +309,62 @@ class _ProductDetailsBottomNavigationBarState
 
     return items;
   }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider(
+        create: (_) => bloc,
+        child: Scaffold(
+          appBar: AppBar(
+            leading: IconButton(
+              icon: Icon(Icons.arrow_back),
+              onPressed: () {
+                Navigator.of(context).push(MaterialPageRoute(
+                    builder: (BuildContext context) => HomePage()));
+              },
+            ),
+            actions: [
+              IconButton(
+                icon: Icon(Icons.share),
+                onPressed: () {
+                  print(
+                      'https://fr.openfoodfacts.org/produit/${widget.barcode}');
+                  Share.share(
+                      'https://fr.openfoodfacts.org/produit/${widget.barcode}',
+                      subject: 'Miam');
+                },
+              ),
+            ],
+          ),
+          body:
+              BlocBuilder<ProductBloc, ProductState>(builder: (context, state) {
+            if (state is ProductLoadingState) {
+              return Center(
+                child: CircularProgressIndicator(),
+              );
+            }
+
+            if (state is ProductAvailableState) {
+              print(state.product?.name);
+              productAvailableState = state;
+              return this.getBody(state.product!);
+            }
+
+            return Center(
+              child: CircularProgressIndicator(),
+            );
+          }),
+          bottomNavigationBar: BottomNavigationBar(
+              type: BottomNavigationBarType.fixed,
+              items: getItems(),
+              currentIndex: currentTab.index,
+              onTap: (int index) {
+                this.onTapHandler(index);
+              },
+              unselectedItemColor: AppColors.gray2,
+              selectedItemColor: AppColors.primaryColor),
+        ));
+  }
 }
 
 enum ProductDetailsCurrentTab { SUMMARY, INFO, NUTRITION, NUTRITIONAL_VALUES }
@@ -286,11 +375,63 @@ class ProductImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     APIProduct? product = ProductHolder.of(context)?.product;
-    print(product?.picture);
+    String? url = product?.pictures?.product;
+
+    if (url != null) {
+      String urlB = url;
+      return Container(
+        width: double.infinity,
+        child: Image.network(urlB),
+      );
+    }
 
     return Container(
       width: double.infinity,
-      child: Image.network(''),
+      height: 300,
+      color: AppColors.blue,
+    );
+  }
+}
+
+class ProductInformation extends StatelessWidget {
+  const ProductInformation({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    const borderRadius = BorderRadius.only(
+      topLeft: Radius.circular(16.0),
+      topRight: Radius.circular(16.0),
+    );
+
+    return Container(
+      decoration: const BoxDecoration(
+        color: AppColors.white,
+        borderRadius: borderRadius,
+      ),
+      child: SingleChildScrollView(
+        child: ClipRRect(
+          borderRadius: borderRadius,
+          child: Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: 10.0,
+              vertical: 20.0,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ProductTitle(),
+                const SizedBox(
+                  height: 10.0,
+                ),
+                ProductInfo(),
+                const SizedBox(
+                  height: 10.0,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
@@ -382,7 +523,7 @@ class ProductTitle extends StatelessWidget {
         const SizedBox(
           height: 8.0,
         ),
-        Text('Ligne 3'),
+        Text(product.altName ?? ''),
       ],
     );
   }
@@ -441,14 +582,59 @@ class ProductInfoNutriScore extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Nutri-Score'),
-        Image.asset(AppImages.nutriscoreA),
-      ],
-    );
+    APIProduct? product = ProductHolder.of(context)?.product;
+
+    if (product == null) {
+      return SizedBox();
+    }
+
+    APIProductNutriscore? nutriScore = product.nutriScore;
+    if (nutriScore != null) {
+      String nutriScoreImage = AppImages.nutriscoreA;
+
+      switch (nutriScore) {
+        case APIProductNutriscore.A:
+          {
+            nutriScoreImage = AppImages.nutriscoreA;
+          }
+          break;
+
+        case APIProductNutriscore.B:
+          {
+            nutriScoreImage = AppImages.nutriscoreB;
+          }
+          break;
+
+        case APIProductNutriscore.C:
+          {
+            nutriScoreImage = AppImages.nutriscoreC;
+          }
+          break;
+
+        case APIProductNutriscore.D:
+          {
+            nutriScoreImage = AppImages.nutriscoreD;
+          }
+          break;
+
+        case APIProductNutriscore.E:
+          {
+            nutriScoreImage = AppImages.nutriscoreE;
+          }
+          break;
+      }
+
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Nutri-Score'),
+          Image.asset(nutriScoreImage),
+        ],
+      );
+    }
+
+    return SizedBox();
   }
 }
 
@@ -457,14 +643,53 @@ class ProductInfoNova extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text('Groupe Nova'),
-        Text('Lorem ipsum'),
-      ],
-    );
+    APIProduct? product = ProductHolder.of(context)?.product;
+
+    if (product == null) {
+      return SizedBox();
+    }
+
+    APIProductNovaScore? novaScore = product.novaScore;
+    if (novaScore != null) {
+      String groupText = 'Groupe Inconnu';
+
+      switch (novaScore) {
+        case APIProductNovaScore.Group1:
+          {
+            groupText = 'Groupe 1';
+          }
+          break;
+
+        case APIProductNovaScore.Group2:
+          {
+            groupText = 'Groupe 2';
+          }
+          break;
+
+        case APIProductNovaScore.Group3:
+          {
+            groupText = 'Groupe 3';
+          }
+          break;
+
+        case APIProductNovaScore.Group4:
+          {
+            groupText = 'Groupe 4';
+          }
+          break;
+      }
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text('Groupe Nova'),
+          Text(groupText),
+        ],
+      );
+    }
+
+    return SizedBox();
   }
 }
 
@@ -473,27 +698,72 @@ class ProductInfoLine2 extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text('EcoScore'),
-          Row(
-            children: [
-              Icon(AppIcons.ecoscore_a),
-              const SizedBox(
-                width: 10.0,
-              ),
-              Expanded(
-                child: Text('Impact environnemental'),
-              ),
-            ],
-          )
-        ],
-      ),
-    );
+    APIProduct? product = ProductHolder.of(context)?.product;
+
+    if (product == null) {
+      return SizedBox();
+    }
+
+    APIProductEcoScore? ecoScore = product.ecoScore;
+    if (ecoScore != null) {
+      IconData ecoScoreIcon = AppIcons.ecoscore_a;
+
+      switch (ecoScore) {
+        case APIProductEcoScore.A:
+          {
+            ecoScoreIcon = AppIcons.ecoscore_a;
+          }
+          break;
+
+        case APIProductEcoScore.B:
+          {
+            ecoScoreIcon = AppIcons.ecoscore_b;
+          }
+          break;
+
+        case APIProductEcoScore.C:
+          {
+            ecoScoreIcon = AppIcons.ecoscore_c;
+          }
+          break;
+
+        case APIProductEcoScore.D:
+          {
+            ecoScoreIcon = AppIcons.ecoscore_d;
+          }
+          break;
+
+        case APIProductEcoScore.E:
+          {
+            ecoScoreIcon = AppIcons.ecoscore_e;
+          }
+          break;
+      }
+
+      return Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('EcoScore'),
+            Row(
+              children: [
+                Icon(ecoScoreIcon),
+                const SizedBox(
+                  width: 10.0,
+                ),
+                Expanded(
+                  child: Text('Impact environnemental'),
+                ),
+              ],
+            )
+          ],
+        ),
+      );
+    }
+
+    return SizedBox();
   }
 }
 
@@ -502,21 +772,33 @@ class ProductFields extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        ProductField(
-          label: 'Quantité',
-          value: '200g',
-          divider: true,
-        ),
-        ProductField(
-          label: 'Vendu',
-          value: 'France',
-          divider: false,
-        ),
-      ],
-    );
+    APIProduct? product = ProductHolder.of(context)?.product;
+
+    if (product == null) {
+      return SizedBox();
+    }
+
+    String? quantity = product.quantity;
+    List<String>? manufacturingCountries = product.manufacturingCountries;
+    if (quantity != null && manufacturingCountries != null) {
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ProductField(
+            label: 'Quantité',
+            value: quantity,
+            divider: true,
+          ),
+          ProductField(
+            label: 'Vendu',
+            value: manufacturingCountries.join(',').toString(),
+            divider: false,
+          ),
+        ],
+      );
+    }
+
+    return SizedBox();
   }
 }
 

@@ -24,12 +24,13 @@ Map<String, dynamic> _$APIGetProductResponseToJson(
     };
 
 APIProduct _$APIProductFromJson(Map<String, dynamic> json) {
-  print(extractPicture(json['pictures'] as Object));
   return APIProduct(
     barcode: json['barcode'] as String,
     name: json['name'] as String?,
     altName: json['altName'] as String?,
-    picture: extractPicture(json['pictures'] as Object),
+    pictures: json['pictures'] == null
+        ? null
+        : APIProductPictures.fromJson(json['pictures'] as Map<String, dynamic>),
     quantity: json['quantity'] as String?,
     brands:
         (json['brands'] as List<dynamic>?)?.map((e) => e as String).toList(),
@@ -38,7 +39,8 @@ APIProduct _$APIProductFromJson(Map<String, dynamic> json) {
         .toList(),
     nutriScore:
         _$enumDecodeNullable(_$APIProductNutriscoreEnumMap, json['nutriScore']),
-    novaScore: extractNovaScore(json['novaScore'] as Object),
+    novaScore:
+        _$enumDecodeNullable(_$APIProductNovaScoreEnumMap, json['novaScore']),
     ecoScore: _$enumDecodeNullable(
         _$APIProductEcoScoreEnumMap, json['ecoScoreGrade']),
     ingredients: json['ingredients'] == null
@@ -66,7 +68,7 @@ Map<String, dynamic> _$APIProductToJson(APIProduct instance) =>
       'barcode': instance.barcode,
       'name': instance.name,
       'altName': instance.altName,
-      'pictures': instance.picture,
+      'pictures': instance.pictures?.toJson(),
       'quantity': instance.quantity,
       'brands': instance.brands,
       'manufacturingCountries': instance.manufacturingCountries,
@@ -126,19 +128,19 @@ const _$APIProductNutriscoreEnumMap = {
   APIProductNutriscore.E: 'E',
 };
 
+const _$APIProductNovaScoreEnumMap = {
+  APIProductNovaScore.Group1: 1,
+  APIProductNovaScore.Group2: 2,
+  APIProductNovaScore.Group3: 3,
+  APIProductNovaScore.Group4: 4,
+};
+
 const _$APIProductEcoScoreEnumMap = {
   APIProductEcoScore.A: 'A',
   APIProductEcoScore.B: 'B',
   APIProductEcoScore.C: 'C',
   APIProductEcoScore.D: 'D',
   APIProductEcoScore.E: 'E',
-};
-
-const _$APIProductNovaScoreEnumMap = {
-  APIProductNovaScore.Group1: 'Group1',
-  APIProductNovaScore.Group2: 'Group2',
-  APIProductNovaScore.Group3: 'Group3',
-  APIProductNovaScore.Group4: 'Group4',
 };
 
 APIProductIngredients _$APIProductIngredientsFromJson(
@@ -155,6 +157,17 @@ Map<String, dynamic> _$APIProductIngredientsToJson(
     <String, dynamic>{
       'containsPalmOil': instance.containsPalmOil,
       'list': instance.ingredients,
+    };
+
+APIProductPictures _$APIProductPicturesFromJson(Map<String, dynamic> json) {
+  return APIProductPictures(
+    product: json['product'] as String,
+  );
+}
+
+Map<String, dynamic> _$APIProductPicturesToJson(APIProductPictures instance) =>
+    <String, dynamic>{
+      'product': instance.product,
     };
 
 APIProductTraces _$APIProductTracesFromJson(Map<String, dynamic> json) {

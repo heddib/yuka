@@ -20,13 +20,11 @@ class APIProduct {
   final String barcode;
   final String? name;
   final String? altName;
-  @JsonKey(name: 'pictures', fromJson: extractPicture)
-  final String? picture;
+  final APIProductPictures? pictures;
   final String? quantity;
   final List<String>? brands;
   final List<String>? manufacturingCountries;
   final APIProductNutriscore? nutriScore;
-  @JsonKey(fromJson: extractNovaScore)
   final APIProductNovaScore? novaScore;
   @JsonKey(name: 'ecoScoreGrade')
   final APIProductEcoScore? ecoScore;
@@ -43,7 +41,7 @@ class APIProduct {
     required this.barcode,
     this.name,
     this.altName,
-    this.picture,
+    this.pictures,
     this.quantity,
     this.brands,
     this.manufacturingCountries,
@@ -65,28 +63,25 @@ class APIProduct {
 }
 
 String? extractPicture(Object res) {
-  if (res is Map) {
-    return res['product'];
+  if (res is String) {
+    return res;
   } else {
     return null;
   }
 }
 
 APIProductNovaScore? extractNovaScore(Object res) {
-  if (res is int) {
-    switch (res) {
-      case 1:
-        return APIProductNovaScore.Group1;
-      case 2:
-        return APIProductNovaScore.Group2;
-      case 3:
-        return APIProductNovaScore.Group3;
-      case 4:
-        return APIProductNovaScore.Group4;
-    }
+  switch (res) {
+    case 1:
+      return APIProductNovaScore.Group1;
+    case 2:
+      return APIProductNovaScore.Group2;
+    case 3:
+      return APIProductNovaScore.Group3;
+    case 4:
+      return APIProductNovaScore.Group4;
   }
-
-  return null;
+  return APIProductNovaScore.Group1;
 }
 
 APIProductAdditives? extractAdditives(Object res) {
@@ -126,6 +121,20 @@ class APIProductIngredients {
       _$APIProductIngredientsFromJson(json);
 
   Map<String, dynamic> toJson() => _$APIProductIngredientsToJson(this);
+}
+
+@JsonSerializable(explicitToJson: true)
+class APIProductPictures {
+  final String product;
+
+  APIProductPictures({
+    required this.product,
+  });
+
+  factory APIProductPictures.fromJson(Map<String, dynamic> json) =>
+      _$APIProductPicturesFromJson(json);
+
+  Map<String, dynamic> toJson() => _$APIProductPicturesToJson(this);
 }
 
 @JsonSerializable(explicitToJson: true)
@@ -269,7 +278,16 @@ enum APIProductNutriscore {
   E
 }
 
-enum APIProductNovaScore { Group1, Group2, Group3, Group4 }
+enum APIProductNovaScore {
+  @JsonValue(1)
+  Group1,
+  @JsonValue(2)
+  Group2,
+  @JsonValue(3)
+  Group3,
+  @JsonValue(4)
+  Group4
+}
 
 enum APIProductEcoScore {
   @JsonValue('A')
